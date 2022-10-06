@@ -13,9 +13,12 @@ class BazelClient : KoinComponent {
     private val queryService: BazelQueryService by inject()
 
     @OptIn(ExperimentalTime::class)
-    suspend fun queryAllTargets(): List<BazelTarget> {
+    suspend fun queryAllTargets(excluding: String? = null): List<BazelTarget> {
         val (targets, queryDuration) = measureTimedValue {
-            queryService.query("'//external:all-targets' + '//...:all-targets'")
+            val allTargetsQuery = "//external:all-targets + //...:all-targets"
+            val excludingQuery = excluding?.let { " - $it" } ?: ""
+            // attr(generator_function, load_2nd_party_repositories, //external:all-targets)
+            queryService.query(allTargetsQuery + excludingQuery)
         }
         logger.i { "All targets queried in $queryDuration" }
         return targets.mapNotNull { target: Build.Target ->

@@ -28,7 +28,7 @@ class BuildGraphHasher(private val bazelClient: BazelClient) : KoinComponent {
     private val logger: Logger by inject()
 
     @OptIn(ExperimentalTime::class)
-    fun hashAllBazelTargetsAndSourcefiles(seedFilepaths: Set<Path> = emptySet()): Map<String, String> {
+    fun hashAllBazelTargetsAndSourcefiles(seedFilepaths: Set<Path> = emptySet(), exclude: String? = null): Map<String, String> {
         /**
          * Bazel will lock parallel queries but this is still allowing us to hash source files while executing a parallel query
          */
@@ -52,7 +52,7 @@ class BuildGraphHasher(private val bazelClient: BazelClient) : KoinComponent {
                 sourceFileTargets
             }
             val targetsTask = async(Dispatchers.IO) {
-                bazelClient.queryAllTargets()
+                bazelClient.queryAllTargets(exclude)
             }
 
             Pair(sourceDigestsFuture.await(), targetsTask.await())

@@ -19,7 +19,7 @@ class GenerateHashesInteractor : KoinComponent {
     private val gson: Gson by inject()
 
     @OptIn(ExperimentalTime::class)
-    fun execute(seedFilepaths: File?, outputPath: File): Boolean {
+    fun execute(seedFilepaths: File?, exclude: String?, outputPath: File): Boolean {
         return try {
             val duration = measureTime {
                 var seedFilepathsSet: Set<Path> = when {
@@ -32,7 +32,7 @@ class GenerateHashesInteractor : KoinComponent {
                     }
                     else -> emptySet()
                 }
-                val hashes = buildGraphHasher.hashAllBazelTargetsAndSourcefiles(seedFilepathsSet)
+                val hashes = buildGraphHasher.hashAllBazelTargetsAndSourcefiles(seedFilepathsSet, exclude)
                 FileWriter(outputPath).use {
                     it.write(gson.toJson(hashes))
                 }

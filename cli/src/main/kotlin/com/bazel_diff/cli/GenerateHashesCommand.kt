@@ -72,6 +72,14 @@ class GenerateHashesCommand : Callable<Int> {
     )
     var keepGoing = true
 
+
+    @CommandLine.Option(
+        names = ["-e", "--exclude"],
+        description = ["Exclude pattern from the query"],
+        scope = CommandLine.ScopeType.INHERIT,
+    )
+    var exclude: String? = null
+
     @CommandLine.Option(
         names = ["-s", "--seed-filepaths"],
         description = ["A text file containing a newline separated list of filepaths, each of these filepaths will be read and used as a seed for all targets."]
@@ -106,7 +114,7 @@ class GenerateHashesCommand : Callable<Int> {
             )
         }
 
-        return when (GenerateHashesInteractor().execute(seedFilepaths, output)) {
+        return when (GenerateHashesInteractor().execute(seedFilepaths, exclude, output)) {
             true -> CommandLine.ExitCode.OK
             false -> CommandLine.ExitCode.SOFTWARE
         }.also { stopKoin() }

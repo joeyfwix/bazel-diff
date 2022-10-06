@@ -83,6 +83,19 @@ class BuildGraphHasherTest : KoinTest {
     }
 
     @Test
+    fun testRuleTargetsExclude() = runBlocking {
+        declareMock<Logger>()
+        whenever(bazelClientMock.queryAllTargets("rule3")).thenReturn(defaultTargets)
+        whenever(bazelClientMock.queryAllSourcefileTargets()).thenReturn(emptyList())
+
+        val hash = hasher.hashAllBazelTargetsAndSourcefiles(exclude = "rule3")
+        assertThat(hash).containsOnly(
+                "rule1" to "2c963f7c06bc1cead7e3b4759e1472383d4469fc3238dc42f8848190887b4775",
+                "rule2" to "bdc1abd0a07103cea34199a9c0d1020619136ff90fb88dcc3a8f873c811c1fe9",
+        )
+    }
+
+    @Test
     fun testSeedFilepaths() = runBlocking {
         val seedfile = temp.newFile().apply { writeText("somecontent") }.toPath()
         val seedFilepaths = setOf(seedfile)
