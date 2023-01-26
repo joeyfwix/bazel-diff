@@ -34,9 +34,9 @@ class GenerateHashesCommand : Callable<Int> {
 
     @CommandLine.Option(
         names = ["-b", "--bazelPath"],
-        description = ["Path to Bazel binary"],
+        description = ["Path to Bazel binary. If not specified, the Bazel binary available in PATH will be used."],
         scope = CommandLine.ScopeType.INHERIT,
-        required = true,
+        defaultValue = "bazel",
     )
     lateinit var bazelPath: Path
 
@@ -88,7 +88,8 @@ class GenerateHashesCommand : Callable<Int> {
 
     @CommandLine.Parameters(
         index = "0",
-        description = ["The filepath to write the resulting JSON of dictionary target => SHA-256 values"]
+        description = ["The filepath to write the resulting JSON of dictionary target => SHA-256 values. If not specified, the JSON will be written to STDOUT."],
+        defaultValue = CommandLine.Parameters.NULL_VALUE
     )
     var outputPath: File? = null
 
@@ -96,7 +97,6 @@ class GenerateHashesCommand : Callable<Int> {
     lateinit var spec: CommandLine.Model.CommandSpec
 
     override fun call(): Int {
-        val output = validateOutput(outputPath)
         validate(contentHashPath=contentHashPath)
 
         startKoin {
@@ -114,17 +114,10 @@ class GenerateHashesCommand : Callable<Int> {
             )
         }
 
-        return when (GenerateHashesInteractor().execute(seedFilepaths, exclude, output)) {
+        return when (GenerateHashesInteractor().execute(seedFilepaths, exclude, outputPath)) {
             true -> CommandLine.ExitCode.OK
             false -> CommandLine.ExitCode.SOFTWARE
         }.also { stopKoin() }
-    }
-
-    private fun validateOutput(output: File?): File {
-        return output ?: throw CommandLine.ParameterException(
-            spec.commandLine(),
-            "No output path specified."
-        )
     }
 
     private fun validate(contentHashPath: File?) {
